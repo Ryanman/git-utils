@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Check if params are sufficient enough to go ahead.
+remoteBranch=$1
+test -z $remoteBranch && echo "No specific remote branch provided, assuming master from origin" 1>&2 && remoteBranch=master
+
+if currentBranch=$(git symbolic-ref --short -q HEAD)
+then
+    git stash
+    git fetch origin $remoteBranch:$remoteBranch
+    git rebase master
+    git stash apply
+
+    echo "Updated $currentBranch with changes from $remoteBranch"
+fi

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+remoteBranch=$1
+test -z $remoteBranch && echo "No specific 'Sacred' remote branch provided, assuming master from origin" 1>&2  && remoteBranch=master
+# Find which is your current branch
+if currentBranch=$(git symbolic-ref --short -q HEAD)
+then
+
+  git fetch -p
+  git branch --merged $remoteBranch | egrep -v "^\s*\*?\s*$remoteBranch$" | xargs git branch -d
+  #git branch --merged master | egrep -v "^\s*\*?\s*master$" | xargs git branch -d
+  
+  echo "Pruned local branches and removed those already merged into $remoteBranch"
+fi

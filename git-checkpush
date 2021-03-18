@@ -1,0 +1,28 @@
+#!/bin/sh
+
+newBranch=$1
+test -z $newBranch && echo "ERROR: Please provide the name of the new branch you'd like to create, using the standard {bug || feature}/{workItemId}-{description}" 1>&2 && exit 1
+
+if currentBranch=$(git symbolic-ref --short -q HEAD)
+then
+  echo "Branching from $currentBranch to $newBranch"
+  git stash
+  git checkout -b $newBranch
+  
+  remoteOrigin=$(git config --get remote.origin.url)
+  echo Remote is $remoteOrigin
+
+  if [ $(git ls-remote --heads $remoteOrigin $newBranch + | wc -l) == "1" ]
+  then
+    echo "Remote branch exits. Pull changes from remote before pushing the changes."
+    git pull --rebase origin $newBranch
+  else   
+    echo "Setting $newBranch to upstream" 
+    git push --set-upstream origin $newBranch
+  fi
+
+  # Apply the stashed changes
+  git stash apply
+
+  echo "Successfully pushed the updates to remote!"
+fi
